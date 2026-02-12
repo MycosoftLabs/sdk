@@ -231,6 +231,46 @@ class NatureOSClient:
             location=location,
             metadata=device_metadata
         )
+
+    # =========================================================================
+    # Verified envelope telemetry (MycoEnvelope v1)
+    # =========================================================================
+
+    async def ingest_mycobrain_envelope(
+        self,
+        envelope: Dict[str, Any],
+    ) -> Dict[str, Any]:
+        """
+        Send a unified envelope to NatureOS for processing.
+
+        NatureOS will forward the envelope into MINDEX's verified time-series
+        ingest surface when configured.
+        """
+        client = await self._get_http_client()
+        response = await client.post("/api/mycobrain/telemetry/envelope", json=envelope)
+        response.raise_for_status()
+        return response.json()
+
+    async def get_mindex_samples(
+        self,
+        device_slug: str,
+        limit: int = 200,
+        mindex_api_url: Optional[str] = None,
+        mindex_api_key: Optional[str] = None,
+    ) -> List[Dict[str, Any]]:
+        """
+        Query MINDEX unified telemetry samples (includes verified/replay metadata).
+        """
+        url = (mindex_api_url or os.getenv("MINDEX_API_URL", "http://localhost:8000")).rstrip("/")
+        key = mindex_api_key or os.getenv("MINDEX_API_KEY", "")
+        if not key:
+            raise ValueError("MINDEX_API_KEY not configured")
+
+        async with httpx.AsyncClient(base_url=url, timeout=self.timeout, headers={"X-API-Key": key}) as c:
+            r = await c.get("/api/telemetry/samples", params={"device_slug": device_slug, "limit": limit})
+            r.raise_for_status()
+            data = r.json()
+            return data if isinstance(data, list) else []
     
     async def close(self):
         """Close HTTP client."""
