@@ -230,6 +230,10 @@ npm test
 4. Add tests
 5. Submit a pull request
 
+## MAS repo clients and website BFF (May 2, 2026)
+
+Internal integrators use **`mycosoft_mas.integrations.natureos_client.NATUREOSClient`** in the MAS repo (not this npm/pip SDK package) for MATLAB and analysis calls. Set `NATUREOS_API_URL` to the .NET `core-api` base. User-facing **Next.js BFF** routes live under `WEBSITE/website/app/api/natureos/*` and `app/api/worldview/v1/*` — see MAS docs `docs/NATUREOS_BFF_MATLAB_LAB_PROXY_MAP_MAY02_2026.md` and `docs/NATUREOS_FULL_STACK_ARCHITECTURE_AND_INTEGRATIONS_MAY02_2026.md`. This SDK package may be extended for public third-party use later; do not assume parity with the internal BFF until documented.
+
 ## License
 
 MIT License - see [LICENSE](./LICENSE) file for details.

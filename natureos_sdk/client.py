@@ -44,7 +44,7 @@ class NatureOSClient:
         """
         self.config = config or {}
         
-        self.api_url = (api_url or os.getenv("NATUREOS_API_URL", "http://localhost:8002")).rstrip('/')
+        self.api_url = (api_url or os.getenv("NATUREOS_API_URL", "http://localhost:8080")).rstrip('/')
         self.api_key = api_key or os.getenv("NATUREOS_API_KEY", "")
         self.tenant_id = tenant_id or os.getenv("NATUREOS_TENANT_ID", "")
         self.timeout = timeout
@@ -271,6 +271,25 @@ class NatureOSClient:
             r.raise_for_status()
             data = r.json()
             return data if isinstance(data, list) else []
+
+    async def get_fusarium_dashboard(self) -> Dict[str, Any]:
+        """Fetch NatureOS Mycosoft dashboard data useful for Fusarium cross-platform views."""
+        client = await self._get_http_client()
+        response = await client.get("/api/mycosoft/fusarium/dashboard")
+        response.raise_for_status()
+        return response.json()
+
+    async def get_fusarium_stream_endpoints(self) -> Dict[str, str]:
+        """Return NatureOS stream endpoints used for Fusarium-aware integrations."""
+        client = await self._get_http_client()
+        response = await client.get("/api/mycosoft/fusarium/stream-endpoints")
+        response.raise_for_status()
+        data = response.json()
+        return {
+            "events_stream_url": f"{self.api_url}{data['events']}",
+            "dashboard_stream_url": f"{self.api_url}{data['dashboard']}",
+            "hub_url": f"{self.api_url}{data['hub']}",
+        }
     
     async def close(self):
         """Close HTTP client."""
